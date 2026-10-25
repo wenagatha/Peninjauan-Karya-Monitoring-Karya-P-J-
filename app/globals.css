@@ -19,7 +19,7 @@ body {
 }
 
 .auth-page {
-  background-color: #f2f5f2;
+  background-color: #f2f3f5;
   background-image: radial-gradient(#cdd9d2 0.7px, transparent 0.7px);
   background-position: 10px 10px;
   background-size: 20px 20px;
@@ -28,8 +28,8 @@ body {
 .auth-art {
   isolation: isolate;
   background:
-    radial-gradient(ellipse at 82% 18%, rgba(240, 200, 121, 0.2), transparent 33%),
-    linear-gradient(145deg, #245c4e 0%, #173f37 55%, #13352f 100%);
+    radial-gradient(ellipse at 82% 18%, rgba(14, 75, 207, 0.425), transparent 33%),
+    linear-gradient(145deg, #0d58b9 0%, #23b1ca 55%, #e6e947 100%);
 }
 
 .auth-art::before,
