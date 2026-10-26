@@ -13,13 +13,15 @@ const hitung = (f: (p: Peserta) => boolean) => ({
   komik: PESERTA.filter((p) => p.lomba === "Komik" && f(p)).length,
 });
 
-const panel = "rounded-xl border border-[#e3e8e5] bg-white p-5";
+const panel = "overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm";
 
 export default function PanitiaPage() {
   const totalDaftar = hitung(() => true);
-  const totalKarya = hitung((p) => p.status !== "Terdaftar"); // karya yang sudah dikirim
-  const perluDitinjau = hitung((p) => p.status === "Karya terkirim");
-  const diverifikasi = hitung((p) => p.status === "Diverifikasi");
+  const totalKarya = hitung((p) => p.judul !== null);
+  const menunggu = hitung((p) => p.judul !== null && p.status === "Menunggu");
+  const ditinjau = hitung((p) => p.judul !== null && p.status === "Ditinjau");
+  const diverifikasi = hitung((p) => p.judul !== null && p.status === "Diverifikasi");
+  const ditolak = hitung((p) => p.judul !== null && p.status === "Ditolak");
 
   return (
     <div className="min-h-screen bg-[#f5f7f6] text-[#183b35] lg:grid lg:grid-cols-[240px_1fr]">
@@ -27,13 +29,17 @@ export default function PanitiaPage() {
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-[#e3e8e5] bg-white p-5 lg:flex">
         <div className="flex items-center gap-3">
           <Image src="/assets/logo-kemenham.png" alt="Logo Kementerian Hukum dan HAM RI" width={36} height={36} className="size-9 object-contain" />
-          <span className="text-sm font-semibold leading-tight">Lomba Hari HAM</span>
+          <span className="text-sm font-semibold leading-tight">Kementrian HAM</span>
         </div>
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Menu</p>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Dashboard</span>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Daftar Peserta</span>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Daftar Karya</span>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Monitoring & Meninjau</p>
+          <Link href="/panitia" className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Dashboard</Link>
+          <Link href="/peserta" className="block rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
+          <Link href="/karya" className="block rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Karya Peserta</Link>
+          <p className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
+          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Kandidat Pemenang</span>
+          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Pemenang</span>
+          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">TOP 3</span>
         </nav>
         <div className="mt-auto">
           <p className="text-sm font-semibold">Panitia (contoh)</p>
@@ -51,6 +57,11 @@ export default function PanitiaPage() {
           </span>
           <Link href="/login" className="text-sm font-semibold text-[#245c4e]">Keluar</Link>
         </header>
+        <nav className="flex gap-2 border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
+          <Link href="/panitia" className="rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Dashboard</Link>
+          <Link href="/peserta" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
+          <Link href="/karya" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Karya</Link>
+        </nav>
 
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
           <div>
@@ -58,31 +69,47 @@ export default function PanitiaPage() {
             <p className="mt-1 text-sm text-[#718079]">Pantau pendaftaran dan karya yang masuk. Data di halaman ini masih contoh.</p>
           </div>
 
-          {/* 4 kartu ringkasan */}
-          <section aria-label="Ringkasan" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {/* Ringkasan pendaftaran dan status karya */}
+          <section aria-label="Ringkasan" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             <StatCard judul="Total daftar" data={totalDaftar} />
             <StatCard judul="Total karya" data={totalKarya} />
-            <StatCard judul="Perlu ditinjau" data={perluDitinjau} />
-            <StatCard judul="Sudah diverifikasi" data={diverifikasi} />
+            <StatCard judul="Menunggu" data={menunggu} />
+            <StatCard judul="Ditinjau" data={ditinjau} />
+            <StatCard judul="Diverifikasi" data={diverifikasi} />
+            <StatCard judul="Ditolak" data={ditolak} />
           </section>
 
           {/* Dua grafik sejajar */}
           <div className="grid gap-5 md:grid-cols-2">
             <section className={panel}>
-              <h2 className="font-semibold">Peserta per lomba</h2>
-              <p className="mb-5 text-sm text-[#718079]">Total peserta yang daftar Lomba Cerita dan Lomba Komik</p>
-              <ChartPendaftaran cerita={totalDaftar.cerita} komik={totalDaftar.komik} />
+              <div className="h-1.5 bg-gradient-to-r from-emerald-600 to-teal-400" />
+              <div className="p-5">
+                <h2 className="font-semibold">Peserta per lomba</h2>
+                <p className="mb-5 text-sm text-[#718079]">Total peserta yang daftar Lomba Cerita dan Lomba Komik</p>
+                <ChartPendaftaran cerita={totalDaftar.cerita} komik={totalDaftar.komik} />
+              </div>
             </section>
             <section className={panel}>
-              <h2 className="font-semibold">Status karya</h2>
-              <p className="mb-5 text-sm text-[#718079]">Perlu ditinjau dan sudah diverifikasi</p>
-              <DonutStatus ditinjau={perluDitinjau.semua} verifikasi={diverifikasi.semua} />
+              <div className="h-1.5 bg-gradient-to-r from-amber-400 to-orange-500" />
+              <div className="p-5">
+                <h2 className="font-semibold">Status karya</h2>
+                <p className="mb-5 text-sm text-[#718079]">Status seluruh karya peserta</p>
+                <DonutStatus
+                  menunggu={menunggu.semua}
+                  ditinjau={ditinjau.semua}
+                  diverifikasi={diverifikasi.semua}
+                  ditolak={ditolak.semua}
+                />
+              </div>
             </section>
           </div>
 
           <section className={panel}>
-            <h2 className="mb-4 font-semibold">Daftar peserta</h2>
-            <TabelPeserta peserta={PESERTA} />
+            <div className="h-1.5 bg-gradient-to-r from-blue-600 to-cyan-400" />
+            <div className="p-5">
+              <h2 className="mb-4 font-semibold">Daftar peserta</h2>
+              <TabelPeserta peserta={PESERTA} />
+            </div>
           </section>
         </main>
       </div>

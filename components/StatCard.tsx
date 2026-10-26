@@ -9,7 +9,7 @@ const TAMPIL = [
   { kunci: "komik", akhiran: " Komik" },
 ] as const;
 
-const kartu = "rounded-xl border border-[#e3e8e5] bg-white p-5 text-left";
+const kartu = "rounded-xl border-2 border-[#52645c] border-t-4 border-t-emerald-600 bg-white p-5 text-left shadow-sm";
 
 // data berupa angka = kartu biasa; data berupa Hitung = kartu yang bisa diklik untuk ganti tampilan
 export default function StatCard({ judul, data }: { judul: string; data: Hitung | number }) {
