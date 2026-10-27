@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
+import IkonMenu from "@/components/IkonMenu";
 import {
   DAFTAR_STATUS_KARYA,
   getServerSnapshotStatusKarya,
@@ -166,7 +167,7 @@ function BerkasItem({ berkas }: { berkas: Berkas }) {
     </>
   );
   const kelas =
-    "flex items-center justify-between gap-3 rounded-xl border border-[#56675e] bg-white px-4 py-3";
+    "flex items-center justify-between gap-3 rounded-xl border border-[#56675e] bg-white px-3 py-2.5";
 
   return berkas.url ? (
     <a
@@ -262,12 +263,12 @@ function KartuKarya({
   return (
     <article className="overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm">
       <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-400 to-amber-400" />
-      <div className="p-5 sm:p-6">
-        <div className="flex flex-col justify-between gap-3 border-b border-[#eef1ef] pb-4 sm:flex-row sm:items-start">
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col justify-between gap-2 border-b border-[#eef1ef] pb-3 sm:flex-row sm:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#718079]">{NAMA_LOMBA[karya.lomba]}</p>
           </div>
-          <div className="flex flex-col items-start gap-2 sm:items-end">
+          <div className="flex items-center gap-2 sm:items-end">
             <StatusEditor
               status={status}
               namaPeserta={karya.namaPeserta}
@@ -275,42 +276,41 @@ function KartuKarya({
             />
             <Link
               href={`/juri/${karya.id}`}
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-[#245c4e] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+              className="inline-flex h-8 items-center justify-center rounded-lg bg-[#245c4e] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
             >
               Tinjau
             </Link>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 xl:grid-cols-3">
           <p>
             <span className="block text-xs text-[#718079]">Peserta</span>
-            <span className="mt-1 block font-medium">{karya.namaPeserta}</span>
-            <span className="text-xs text-[#718079]">{karya.tipePeserta}</span>
+            <span className="mt-0.5 block font-medium">{karya.namaPeserta}</span>
           </p>
           <p>
             <span className="block text-xs text-[#718079]">Asal</span>
-            <span className="mt-1 block font-medium">{karya.asal}</span>
+            <span className="mt-0.5 block font-medium">{karya.asal}</span>
           </p>
           <p>
             <span className="block text-xs text-[#718079]">Tanggal mendaftar</span>
-            <span className="mt-1 block font-medium">{formatWaktu(karya.mendaftarPada)}</span>
+            <span className="mt-0.5 block font-medium">{formatWaktu(karya.mendaftarPada)}</span>
           </p>
         </div>
 
         {karya.dikirimPada && (
-          <div className="mt-4 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm">
+          <div className="mt-3 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-3 py-2.5 text-sm">
             <span className="text-[#718079]">Dikirim pada </span>
             <span className="font-medium">{formatWaktu(karya.dikirimPada)}</span>
           </div>
         )}
 
         {karya.berkas.length > 0 && (
-          <div className="mt-5">
-            <h3 className="mb-3 text-sm font-semibold text-[#183b35]">
+          <div className="mt-4">
+            <h3 className="mb-2 text-sm font-semibold text-[#183b35]">
               Berkas peserta
             </h3>
-            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {karya.berkas.map((b) => (
                 <li key={b.label}>
                   <BerkasItem berkas={b} />
@@ -320,12 +320,12 @@ function KartuKarya({
           </div>
         )}
 
-        <div className="mt-5 flex flex-col items-start gap-2 border-t border-[#eef1ef] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col items-start gap-2 border-t border-[#eef1ef] pt-3 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={unduhBerkasPeserta}
             disabled={sedangMengunduh}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border-2 border-[#52645c] bg-white px-4 text-sm font-semibold text-[#183b35] transition-colors hover:bg-[#f0f7f3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border-2 border-[#52645c] bg-white px-3 text-sm font-semibold text-[#183b35] transition-colors hover:bg-[#f0f7f3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] disabled:cursor-wait disabled:opacity-60"
           >
             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="size-4">
               <path d="M10 2.5v9m0 0 3.5-3.5M10 11.5 6.5 8M3.5 13.5v3h13v-3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -401,13 +401,12 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
         </div>
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Monitoring &amp; Meninjau</p>
-          <Link href="/panitia" className="rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Dashboard</Link>
-          <Link href="/peserta" className="rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
-          <Link href="/karya" className="rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Daftar Karya Peserta</Link>
+          <Link href="/panitia" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="dashboard" />Dashboard</Link>
+          <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
+          <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-          <span className="rounded-lg px-3 py-2 text-[#52645c]">Kandidat Pemenang</span>
-          <span className="rounded-lg px-3 py-2 text-[#52645c]">Pemenang</span>
-          <span className="rounded-lg px-3 py-2 text-[#52645c]">TOP 3</span>
+          <span className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c]"><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+          <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
         <div className="mt-auto">
           <p className="text-sm font-semibold">Panitia (contoh)</p>
@@ -425,9 +424,10 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
           <Link href="/login" className="text-sm font-semibold text-[#245c4e]">Keluar</Link>
         </header>
         <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
-          <Link href="/panitia" className="shrink-0 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Dashboard</Link>
-          <Link href="/peserta" className="shrink-0 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
-          <Link href="/karya" className="shrink-0 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Daftar Karya</Link>
+          <Link href="/panitia" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="dashboard" />Dashboard</Link>
+          <Link href="/peserta" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
+          <Link href="/karya" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya</Link>
+          <Link href="/pemenang" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
 
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
@@ -440,7 +440,7 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
             </p>
           </header>
 
-          <section aria-label="Ringkasan karya" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <section aria-label="Ringkasan karya" className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <article className="rounded-xl border-2 border-[#52645c] border-t-4 border-t-emerald-600 bg-white p-5 shadow-sm">
               <p className="text-sm text-[#718079]">Total data karya</p>
               <p className="mt-2 text-2xl font-semibold">{karya.length}</p>

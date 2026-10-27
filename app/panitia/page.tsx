@@ -4,6 +4,7 @@ import StatCard from "@/components/StatCard";
 import ChartPendaftaran from "@/components/ChartPendaftaran";
 import DonutStatus from "@/components/DonutStatus";
 import TabelPeserta from "@/components/TabelPeserta";
+import IkonMenu from "@/components/IkonMenu";
 import { PESERTA, type Peserta } from "@/lib/data";
 
 // Hitung jumlah menurut filter: semua, hanya Cerita, hanya Komik
@@ -33,13 +34,12 @@ export default function PanitiaPage() {
         </div>
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Monitoring & Meninjau</p>
-          <Link href="/panitia" className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Dashboard</Link>
-          <Link href="/peserta" className="block rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
-          <Link href="/karya" className="block rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Karya Peserta</Link>
+          <Link href="/panitia" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="dashboard" />Dashboard</Link>
+          <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
+          <Link href="/karya" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
           <p className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Kandidat Pemenang</span>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Pemenang</span>
-          <span className="block rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">TOP 3</span>
+          <span className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c]"><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+          <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
         <div className="mt-auto">
           <p className="text-sm font-semibold">Panitia (contoh)</p>
@@ -57,10 +57,11 @@ export default function PanitiaPage() {
           </span>
           <Link href="/login" className="text-sm font-semibold text-[#245c4e]">Keluar</Link>
         </header>
-        <nav className="flex gap-2 border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
-          <Link href="/panitia" className="rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Dashboard</Link>
-          <Link href="/peserta" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Peserta</Link>
-          <Link href="/karya" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]">Daftar Karya</Link>
+        <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
+          <Link href="/panitia" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="dashboard" />Dashboard</Link>
+          <Link href="/peserta" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
+          <Link href="/karya" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="karya" />Daftar Karya</Link>
+          <Link href="/pemenang" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
 
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
@@ -70,7 +71,7 @@ export default function PanitiaPage() {
           </div>
 
           {/* Ringkasan pendaftaran dan status karya */}
-          <section aria-label="Ringkasan" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <section aria-label="Ringkasan" className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             <StatCard judul="Total daftar" data={totalDaftar} />
             <StatCard judul="Total karya" data={totalKarya} />
             <StatCard judul="Menunggu" data={menunggu} />

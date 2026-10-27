@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import IkonMenu from "@/components/IkonMenu";
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -77,9 +78,12 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
           <span className="text-sm font-semibold leading-tight">Kementrian HAM</span>
         </div>
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
-          <Link href="/panitia" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]">Dashboard</Link>
-          <Link href="/peserta" className="rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]">Daftar Peserta</Link>
-          <Link href="/karya" className="rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page">Daftar Karya Peserta</Link>
+          <Link href="/panitia" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="dashboard" />Dashboard</Link>
+          <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
+          <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
+          <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
+          <span className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c]"><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+          <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
         <div className="mt-auto">
           <p className="text-sm font-semibold">Juri</p>
@@ -106,7 +110,6 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
               <div>
                 <p className="text-xs font-medium text-[#718079]">Peserta</p>
                 <p className="mt-1 font-semibold">{karya.namaPeserta}</p>
-                <p className="text-sm text-[#718079]">{karya.tipePeserta}</p>
               </div>
               <div>
                 <p className="text-xs font-medium text-[#718079]">Asal sekolah / kampus</p>
