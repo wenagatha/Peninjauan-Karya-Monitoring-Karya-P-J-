@@ -141,6 +141,11 @@ const LOMBA: { nilai: Lomba; label: string }[] = [
   { nilai: "Komik", label: "Lomba Komik" },
 ];
 
+const NAMA_LOMBA: Record<Lomba, string> = {
+  Cerita: "Lomba Cerita",
+  Komik: "Lomba Komik",
+};
+
 // Warna medali menurut peringkat 1, 2, 3
 const MEDALI = [
   { garis: "#d99a50", latar: "#fbf1dc" },
@@ -148,11 +153,12 @@ const MEDALI = [
   { garis: "#b8703a", latar: "#f8e9dc" },
 ];
 
-const panel = "overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm";
-const input = "h-10 rounded-lg border border-[#d9dfdc] bg-white px-3 text-sm outline-none focus:border-[#2c7767]";
-
-const inisial = (nama: string) =>
-  nama.split(" ").slice(0, 2).map((k) => k[0]).join("").toUpperCase();
+const input = "h-10 rounded-lg border border-[#d9dfdc] bg-white px-3 text-sm text-[#183b35] outline-none placeholder:text-[#929d98] focus:border-[#245c4e] focus:ring-2 focus:ring-[#245c4e]/20";
+const KELAS_PODIUM: Record<number, string> = {
+  1: "order-2 sm:-translate-y-3 border-[#245c4e] border-t-4 border-t-[#245c4e] bg-white",
+  2: "order-1 border-[#8a9a93] border-t-4 border-t-[#8a9a93] bg-white",
+  3: "order-3 border-[#b8703a] border-t-4 border-t-[#b8703a] bg-white",
+};
 
 function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
   const [lomba, setLomba] = useState<Lomba>("Cerita");
@@ -167,60 +173,87 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
     .filter((p) => `${p.nama} ${p.asal} ${p.judul}`.toLowerCase().includes(kata));
 
   return (
-    <div className="space-y-5">
-      <div role="group" aria-label="Pilih lomba" className="inline-flex rounded-lg border border-[#d9dfdc] bg-white p-1 text-sm">
-        {LOMBA.map((l) => (
-          <button
-            key={l.nilai}
-            type="button"
-            aria-pressed={lomba === l.nilai}
-            onClick={() => setLomba(l.nilai)}
-            className={`rounded-md px-4 py-1.5 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] ${lomba === l.nilai ? "bg-[#245c4e] text-white" : "text-[#52645c] hover:bg-[#f5f7f6]"}`}
-          >
-            {l.label}
-          </button>
-        ))}
+    <div className="overflow-hidden rounded-2xl border-2 border-[#52645c] bg-[#f5f7f6] p-4 text-[#183b35] shadow-sm sm:p-7">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#718079]">Papan peringkat</p>
+          <h2 className="mt-1 text-xl font-bold sm:text-2xl">{LOMBA.find((item) => item.nilai === lomba)?.label}</h2>
+        </div>
+        <div role="group" aria-label="Pilih lomba" className="inline-flex rounded-lg border border-[#d9dfdc] bg-white p-1 text-sm">
+          {LOMBA.map((l) => (
+            <button
+              key={l.nilai}
+              type="button"
+              aria-pressed={lomba === l.nilai}
+              onClick={() => setLomba(l.nilai)}
+              className={`rounded-md px-4 py-1.5 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] ${lomba === l.nilai ? "bg-[#245c4e] text-white" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <section aria-labelledby="judul-tiga">
-        <h2 id="judul-tiga" className="sr-only">Tiga peringkat teratas {lomba}</h2>
+        <h2 id="judul-tiga" className="mb-5 text-center text-lg font-bold uppercase tracking-[0.16em] text-[#245c4e] sm:text-xl">
+          Pemenang {lomba === "Cerita" ? "Lomba Cerita" : "Lomba Komik"}
+        </h2>
         {tiga.length === 0 ? (
-          <p className={`${panel} p-6 text-center text-sm text-[#718079]`}>Belum ada karya yang dinilai di lomba ini.</p>
+          <p className="rounded-xl border border-[#d9dfdc] bg-white p-8 text-center text-sm text-[#718079]">Belum ada karya yang dinilai di lomba ini.</p>
         ) : (
-          <ol className="grid gap-4 sm:grid-cols-3">
+          <ol className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-3">
             {tiga.map((p) => {
               const medali = MEDALI[Math.min(p.peringkat, 3) - 1];
               return (
-                <li key={p.id} className={panel}>
-                  <div className="flex items-start gap-3 p-4">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[#eef3f0] text-sm font-semibold text-[#245c4e]" aria-hidden="true">
-                      {inisial(p.nama)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{p.nama}</p>
-                      <p className="truncate text-xs text-[#718079]">{p.asal}</p>
+                  <li
+                    key={p.id}
+                    className={`relative flex min-h-48 flex-col overflow-hidden rounded-2xl border p-4 text-[#183b35] shadow-sm transition-transform sm:p-5 ${KELAS_PODIUM[p.peringkat]}`}
+                  >
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-5 -top-7 select-none text-[120px] leading-none opacity-[0.06]">
+                      🏆
                     </div>
-                    <span
-                      className="grid size-9 shrink-0 place-items-center rounded-full border-2 text-sm font-bold"
-                      style={{ borderColor: medali.garis, backgroundColor: medali.latar }}
-                      role="img"
-                      aria-label={`Peringkat ${p.peringkat}`}
-                    >
-                      {p.peringkat}
-                    </span>
-                  </div>
-                </li>
-              );
+
+                    {/* Atas: nama, lomba, asal sekolah + badge peringkat */}
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-lg font-extrabold uppercase leading-tight sm:text-xl">{p.nama}</p>
+                        <p className="mt-2 truncate text-xs font-semibold text-[#245c4e]">{NAMA_LOMBA[p.lomba]}</p>
+                        <p className="truncate text-xs text-[#718079]">{p.asal}</p>
+                      </div>
+                      <span
+                        className="grid size-10 shrink-0 place-items-center rounded-full border-2 text-base font-black shadow-md"
+                        style={{ borderColor: medali.garis, backgroundColor: medali.latar, color: "#24312b" }}
+                        role="img"
+                        aria-label={`Peringkat ${p.peringkat}`}
+                      >
+                        {p.peringkat}
+                      </span>
+                    </div>
+
+                    {/* Bawah: hanya tombol */}
+                    <div className="relative mt-auto pt-5">
+                      <Link
+                        href={`/juri/peringkat-${p.id}`}
+                        className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#245c4e] px-3 text-xs font-bold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+                      >
+                        Tinjau karya
+                      </Link>
+                    </div>
+                  </li>
+                );
             })}
           </ol>
         )}
       </section>
 
-      <section className={panel}>
+      <section className="mt-6 overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm">
         <div className="h-1.5 bg-gradient-to-r from-emerald-600 to-teal-400" />
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">Peringkat 4-10</h2>
+            <div>
+              <h2 className="text-lg font-bold">Peringkat 4-10</h2>
+              <p className="mt-0.5 text-xs text-[#718079]">Peserta dengan peringkat berikutnya</p>
+            </div>
             <input
               className={`${input} w-full sm:w-56`}
               placeholder="Cari nama, asal, atau judul"
@@ -230,41 +263,37 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[360px] text-left text-sm">
-              <caption className="sr-only">Peringkat karya {lomba} berdasarkan nilai juri</caption>
-              <thead>
-                <tr className="border-b border-[#e3e8e5] text-xs text-[#718079]">
-                  <th scope="col" className="w-24 py-2.5 pr-3 font-semibold">Peringkat</th>
-                  <th scope="col" className="py-2.5 pr-3 font-semibold">Peserta</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tampil.map((p) => (
-                  <tr key={p.id} className="border-b border-[#f0f3f1] last:border-0">
-                    <td className="py-3 pr-3 font-semibold tabular-nums">{p.peringkat}</td>
-                    <td className="py-3 pr-3">
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#eef3f0] text-xs font-semibold text-[#245c4e]" aria-hidden="true">
-                          {inisial(p.nama)}
-                        </span>
-                        <div>
-                          <p className="font-semibold">{p.nama}</p>
-                          <p className="text-xs text-[#718079]">{p.asal}</p>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {tampil.length === 0 && (
-                  <tr>
-                    <td colSpan={2} className="py-8 text-center text-[#718079]">
-                      {sisa.length === 0 ? "Belum ada peserta di peringkat 4 sampai 10." : "Tidak ada karya yang cocok dengan pencarian."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {tampil.map((p) => (
+              <article key={p.id} className="grid gap-4 rounded-xl border border-[#e3e8e5] bg-[#f5f7f6] p-3 sm:grid-cols-[minmax(170px,1fr)_auto] sm:items-center sm:px-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className="grid size-10 shrink-0 place-items-center rounded-full border border-[#d9dfdc] bg-white text-xs font-bold text-[#245c4e]"
+                    aria-label={`Peringkat ${p.peringkat}`}
+                  >
+                    {p.peringkat}<sup>th</sup>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-bold">{p.nama}</p>
+                    <p className="truncate text-xs font-semibold text-[#245c4e]">{NAMA_LOMBA[p.lomba]}</p>
+                    <p className="truncate text-xs text-[#718079]">{p.asal}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end border-t border-[#e3e8e5] pt-2 sm:border-0 sm:pt-0">
+                  <Link
+                    href={`/juri/peringkat-${p.id}`}
+                    className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#245c4e] px-3 text-xs font-bold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+                  >
+                    Tinjau karya
+                  </Link>
+                </div>
+              </article>
+            ))}
+            {tampil.length === 0 && (
+              <p className="py-8 text-center text-sm text-[#718079]">
+                {sisa.length === 0 ? "Belum ada peserta di peringkat 4 sampai 10." : "Tidak ada karya yang cocok dengan pencarian."}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -286,7 +315,7 @@ export default function PemenangPage() {
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
           <div>
             <h1 className="text-2xl font-semibold">Pemenang</h1>
-            <p className="mt-1 text-sm text-[#718079]">Peringkat karya berdasarkan nilai juri, per lomba. Data di halaman ini masih contoh.</p>
+            <p className="mt-1 text-sm text-[#718079]">Papan peringkat karya peserta berdasarkan nilai juri.</p>
           </div>
           <PemenangRanking data={DATA_PERINGKAT} />
         </main>

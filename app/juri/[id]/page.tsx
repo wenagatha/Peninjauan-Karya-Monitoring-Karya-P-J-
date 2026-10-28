@@ -3,12 +3,39 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { DATA_CONTOH } from "@/components/DaftarKaryaPeserta";
+import { DATA_CONTOH, type KaryaPeserta } from "@/components/DaftarKaryaPeserta";
 import TinjauanKarya from "@/components/TinjauanKarya";
+import { PESERTA } from "@/lib/data";
 
 function KontenTinjauanJuri() {
   const { id } = useParams<{ id: string }>();
-  const karya = DATA_CONTOH.find((item) => item.id === id);
+  let karya: KaryaPeserta | undefined;
+
+  if (id.startsWith("peringkat-")) {
+    const pesertaId = Number(id.slice("peringkat-".length));
+    const peserta = Number.isSafeInteger(pesertaId)
+      ? PESERTA.find((item) => item.id === pesertaId && item.judul !== null)
+      : undefined;
+    const contohBerkas = peserta
+      ? DATA_CONTOH.find((item) => item.lomba === peserta.lomba)
+      : undefined;
+
+    if (peserta && contohBerkas) {
+      karya = {
+        id: String(peserta.id),
+        lomba: peserta.lomba,
+        namaPeserta: peserta.nama,
+        tipePeserta: "Individu",
+        asal: peserta.asal,
+        mendaftarPada: `${peserta.daftar}T00:00:00+07:00`,
+        dikirimPada: null,
+        status: peserta.status,
+        berkas: contohBerkas.berkas,
+      };
+    }
+  } else {
+    karya = DATA_CONTOH.find((item) => item.id === id);
+  }
 
   if (!karya) {
     return (
