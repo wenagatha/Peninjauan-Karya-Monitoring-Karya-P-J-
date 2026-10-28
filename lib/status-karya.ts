@@ -45,7 +45,15 @@ function parseStatusKarya(tersimpan: string | null): SnapshotStatusKarya {
         error: "Data status karya tersimpan berisi status yang tidak dikenal.",
       };
     }
-    status[id] = nilai;
+    const pesertaId = Number(id);
+    const tujuan = Number.isSafeInteger(pesertaId) && pesertaId >= 1 && pesertaId <= 10
+      ? id === "1"
+        ? ["peserta-1", "karya-alief"]
+        : [`peserta-${id}`]
+      : [id];
+    for (const kunci of tujuan) {
+      status[kunci] = nilai;
+    }
   }
 
   return { status, error: null };

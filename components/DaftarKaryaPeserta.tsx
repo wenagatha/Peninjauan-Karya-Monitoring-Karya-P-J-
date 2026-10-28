@@ -65,7 +65,7 @@ const STATUS_STYLE: Record<StatusKarya, string> = {
 
 export const DATA_CONTOH: KaryaPeserta[] = [
   {
-    id: "1",
+    id: "karya-alief",
     lomba: "Cerita",
     namaPeserta: "Alief Linggar Syamsudin",
     tipePeserta: "Kelompok",
@@ -76,7 +76,7 @@ export const DATA_CONTOH: KaryaPeserta[] = [
     berkas: [...BERKAS_DEMO],
   },
   {
-    id: "2",
+    id: "peserta-2",
     lomba: "Komik",
     namaPeserta: "Bima Saputra",
     tipePeserta: "Individu",
@@ -87,7 +87,7 @@ export const DATA_CONTOH: KaryaPeserta[] = [
     berkas: [...BERKAS_DEMO],
   },
   {
-    id: "3",
+    id: "peserta-3",
     lomba: "Cerita",
     namaPeserta: "Citra Lestari",
     tipePeserta: "Individu",
@@ -98,7 +98,7 @@ export const DATA_CONTOH: KaryaPeserta[] = [
     berkas: [...BERKAS_DEMO],
   },
   {
-    id: "4",
+    id: "peserta-4",
     lomba: "Komik",
     namaPeserta: "Dimas Pratama",
     tipePeserta: "Individu",
@@ -346,12 +346,20 @@ function KartuKarya({
 /* ---------- Komponen utama ---------- */
 
 type Props = {
+  kategori?: Lomba;
   karya?: KaryaPeserta[];
 };
 
-export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
+const NAMA_KATEGORI: Record<Lomba, string> = {
+  Cerita: "Cerita HAM",
+  Komik: "Komik Bergambar",
+};
+
+export default function DaftarKaryaPeserta({
+  kategori,
+  karya = DATA_CONTOH,
+}: Props) {
   const [kata, setKata] = useState("");
-  const [lomba, setLomba] = useState<"Semua" | Lomba>("Semua");
   const [status, setStatus] = useState<"Semua" | StatusKarya>("Semua");
   const snapshotStatus = useSyncExternalStore(
     subscribeStatusKarya,
@@ -375,7 +383,7 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
   const hasil = useMemo(() => {
     const q = kata.trim().toLowerCase();
     return karya.filter((k) => {
-      if (lomba !== "Semua" && k.lomba !== lomba) return false;
+      if (!kategori || k.lomba !== kategori) return false;
       const statusSaatIni = snapshotStatus.status[k.id] ?? k.status;
       if (status !== "Semua" && statusSaatIni !== status) return false;
       if (!q) return true;
@@ -384,10 +392,21 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
         k.asal.toLowerCase().includes(q)
       );
     });
-  }, [karya, kata, lomba, status, snapshotStatus.status]);
+  }, [karya, kata, kategori, status, snapshotStatus.status]);
 
   const jumlahStatus = (target: StatusKarya) =>
-    karya.filter((k) => (snapshotStatus.status[k.id] ?? k.status) === target).length;
+    karya.filter(
+      (k) =>
+        k.lomba === kategori &&
+        (snapshotStatus.status[k.id] ?? k.status) === target,
+    ).length;
+
+  const kelasSubmenu = (pilihan: Lomba) =>
+    `block rounded-lg px-3 py-2 text-sm transition-colors ${
+      kategori === pilihan
+        ? "bg-[#eef3f0] font-semibold text-[#245c4e]"
+        : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"
+    }`;
 
   const inputKelas =
     "h-11 rounded-lg border border-[#d9e0dc] bg-white px-4 text-sm focus:border-[#245c4e] focus:outline-none focus:ring-2 focus:ring-[#245c4e]/20";
@@ -403,7 +422,11 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Monitoring &amp; Meninjau</p>
           <Link href="/panitia" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="dashboard" />Dashboard</Link>
           <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
-          <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
+          <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current={!kategori ? "page" : undefined}><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
+          <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+            <Link href="/karya/cerita" className={kelasSubmenu("Cerita")} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+            <Link href="/karya/komik" className={kelasSubmenu("Komik")} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+          </div>
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
           <Link href="/kandidat" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
           <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
@@ -426,25 +449,58 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
         <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
           <Link href="/panitia" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="dashboard" />Dashboard</Link>
           <Link href="/peserta" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
-          <Link href="/karya" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya</Link>
+          <Link href="/karya" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current={!kategori ? "page" : undefined}><IkonMenu nama="karya" />Daftar Karya</Link>
           <Link href="/kandidat" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="kandidat" />Kandidat</Link>
           <Link href="/pemenang" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
+        </nav>
+        <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 py-2 text-sm lg:hidden" aria-label="Kategori karya">
+          <Link href="/karya/cerita" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+          <Link href="/karya/komik" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
         </nav>
 
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
           <header>
             <p className="text-sm font-medium text-[#718079]">Monitoring &amp; Meninjau</p>
-            <h1 className="mt-1 text-2xl font-semibold">Daftar Karya Peserta</h1>
-            <p className="mt-1 text-sm text-[#718079]">Pantau karya, berkas, dan status peninjauan peserta.</p>
+            <h1 className="mt-1 text-2xl font-semibold">
+              {kategori ? `Daftar Karya ${NAMA_KATEGORI[kategori]}` : "Daftar Karya Peserta"}
+            </h1>
+            <p className="mt-1 text-sm text-[#718079]">
+              {kategori
+                ? `Pantau karya, berkas, dan status peninjauan lomba ${NAMA_KATEGORI[kategori]}.`
+                : "Pilih kategori lomba untuk melihat dan meninjau karya peserta."}
+            </p>
             <p className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               Berkas yang sama ditampilkan untuk semua peserta sebagai data demo; dokumen ini bukan unggahan asli masing-masing peserta.
             </p>
           </header>
 
-          <section aria-label="Ringkasan karya" className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {!kategori ? (
+            <section aria-label="Pilih kategori lomba" className="grid gap-4 md:grid-cols-2">
+              {(["Cerita", "Komik"] as const).map((pilihan) => (
+                <Link
+                  key={pilihan}
+                  href={pilihan === "Cerita" ? "/karya/cerita" : "/karya/komik"}
+                  className="group overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+                >
+                  <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-400 to-amber-400" />
+                  <div className="flex items-center justify-between gap-4 p-5">
+                    <div>
+                      <h2 className="text-lg font-semibold group-hover:text-[#245c4e]">{NAMA_KATEGORI[pilihan]}</h2>
+                      <p className="mt-1 text-sm text-[#718079]">Lihat daftar karya dan status peninjauan</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-[#eef3f0] px-3 py-1 text-sm font-semibold text-[#245c4e]">
+                      {karya.filter((k) => k.lomba === pilihan).length} peserta
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </section>
+          ) : (
+          <>
+          <section aria-label={`Ringkasan karya ${NAMA_KATEGORI[kategori]}`} className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <article className="rounded-xl border-2 border-[#52645c] border-t-4 border-t-emerald-600 bg-white p-5 shadow-sm">
               <p className="text-sm text-[#718079]">Total data karya</p>
-              <p className="mt-2 text-2xl font-semibold">{karya.length}</p>
+              <p className="mt-2 text-2xl font-semibold">{karya.filter((k) => k.lomba === kategori).length}</p>
             </article>
             <article className="rounded-xl border-2 border-[#52645c] border-t-4 border-t-blue-500 bg-white p-5 shadow-sm">
               <p className="text-sm text-[#718079]">Menunggu</p>
@@ -469,12 +525,12 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
             <div className="border-b border-[#eef1ef] p-5">
               <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-end">
                 <div>
-                  <h2 className="font-semibold">Data karya peserta</h2>
-                  <p className="mt-1 text-sm text-[#718079]">Cari peserta atau saring berdasarkan lomba dan status.</p>
+                  <h2 className="font-semibold">Data karya {NAMA_KATEGORI[kategori]}</h2>
+                  <p className="mt-1 text-sm text-[#718079]">Cari peserta atau saring berdasarkan status.</p>
                 </div>
                 <p className="text-sm text-[#718079]" aria-live="polite">{hasil.length} data ditemukan</p>
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <label htmlFor="cari-karya" className="sr-only">Cari karya</label>
                   <input
@@ -485,19 +541,6 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
                     placeholder="Cari nama atau asal peserta"
                     className={`${inputKelas} w-full placeholder:text-[#929d98]`}
                   />
-                </div>
-                <div>
-                  <label htmlFor="filter-lomba-karya" className="sr-only">Filter lomba</label>
-                  <select
-                    id="filter-lomba-karya"
-                    value={lomba}
-                    onChange={(e) => setLomba(e.target.value as "Semua" | Lomba)}
-                    className={`${inputKelas} w-full`}
-                  >
-                    <option value="Semua">Semua lomba</option>
-                    <option value="Cerita">Buku Cerita</option>
-                    <option value="Komik">Serial Komik</option>
-                  </select>
                 </div>
                 <div>
                   <label htmlFor="filter-status-karya" className="sr-only">Filter status</label>
@@ -525,7 +568,7 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
               ))}
               {hasil.length === 0 && (
                 <p className="py-12 text-center text-sm text-[#6b7873]">
-                  Tidak ada karya yang cocok. Coba ubah kata kunci atau pilih &ldquo;Semua lomba&rdquo; dan &ldquo;Semua status&rdquo;.
+                  Tidak ada karya yang cocok. Coba ubah kata kunci atau pilih &ldquo;Semua status&rdquo;.
                 </p>
               )}
               {(pesanSimpan || snapshotStatus.error) && (
@@ -535,6 +578,8 @@ export default function DaftarKaryaPeserta({ karya = DATA_CONTOH }: Props) {
               )}
             </div>
           </section>
+          </>
+          )}
         </main>
       </div>
     </div>

@@ -40,8 +40,43 @@ function formatWaktu(iso: string) {
   return `${fmtTanggal.format(tanggal)} pukul ${fmtJam.format(tanggal)}`;
 }
 
-export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
+export default function TinjauanKarya({
+  karya,
+  kembaliKeKandidat,
+  kembaliKePemenang,
+}: {
+  karya: KaryaPeserta;
+  kembaliKeKandidat?: "Cerita" | "Komik";
+  kembaliKePemenang?: "Cerita" | "Komik";
+}) {
   const router = useRouter();
+  const halamanKategori = kembaliKeKandidat
+    ? kembaliKeKandidat === "Cerita"
+      ? "/kandidat/cerita"
+      : "/kandidat/komik"
+    : kembaliKePemenang
+      ? kembaliKePemenang === "Cerita"
+        ? "/pemenang/cerita"
+        : "/pemenang/komik"
+      : karya.lomba === "Cerita"
+        ? "/karya/cerita"
+        : "/karya/komik";
+  const namaKategori = kembaliKeKandidat
+    ? kembaliKeKandidat === "Cerita"
+      ? "Kandidat Cerita HAM"
+      : "Kandidat Komik Bergambar"
+    : kembaliKePemenang
+      ? kembaliKePemenang === "Cerita"
+        ? "Pemenang Cerita HAM"
+        : "Pemenang Komik Bergambar"
+      : karya.lomba === "Cerita"
+        ? "Cerita HAM"
+        : "Komik Bergambar";
+  const halamanKandidat = kembaliKePemenang
+    ? kembaliKePemenang === "Cerita"
+      ? "/kandidat/cerita"
+      : "/kandidat/komik"
+    : "/kandidat";
   const snapshotStatus = useSyncExternalStore(
     subscribeStatusKarya,
     getSnapshotStatusKarya,
@@ -56,7 +91,7 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
       if (snapshotStatus.error) throw new Error(snapshotStatus.error);
       simpanStatusKarya({ ...snapshotStatus.status, [karya.id]: status });
       setPesan("Keputusan berhasil disimpan.");
-      router.push("/karya");
+      router.push(halamanKategori);
     } catch (error) {
       setPesan(
         error instanceof Error ? error.message : "Keputusan gagal disimpan.",
@@ -80,10 +115,38 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
           <Link href="/panitia" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="dashboard" />Dashboard</Link>
           <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
-          <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
+          <Link href="/karya" className={`flex items-center gap-3 rounded-lg px-3 py-2 ${!kembaliKeKandidat && !kembaliKePemenang ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={!kembaliKeKandidat && !kembaliKePemenang ? "page" : undefined}><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
+          {!kembaliKeKandidat && !kembaliKePemenang && <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+            <Link
+              href="/karya/cerita"
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${karya.lomba === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`}
+              aria-current={karya.lomba === "Cerita" ? "page" : undefined}
+            >
+              Cerita HAM
+            </Link>
+            <Link
+              href="/karya/komik"
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${karya.lomba === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`}
+              aria-current={karya.lomba === "Komik" ? "page" : undefined}
+            >
+              Komik Bergambar
+            </Link>
+          </div>}
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-          <Link href="/kandidat" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
-          <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="pemenang" />Pemenang</Link>
+          <Link href="/kandidat" className={`flex items-center gap-3 rounded-lg px-3 py-2 ${kembaliKeKandidat ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kembaliKeKandidat ? "page" : undefined}><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
+          {kembaliKeKandidat && (
+            <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+              <Link href="/kandidat/cerita" className={`block rounded-lg px-3 py-2 text-sm transition-colors ${kembaliKeKandidat === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`} aria-current={kembaliKeKandidat === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+              <Link href="/kandidat/komik" className={`block rounded-lg px-3 py-2 text-sm transition-colors ${kembaliKeKandidat === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`} aria-current={kembaliKeKandidat === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+            </div>
+          )}
+          <Link href="/pemenang" className={`flex items-center gap-3 rounded-lg px-3 py-2 ${kembaliKePemenang ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kembaliKePemenang ? "page" : undefined}><IkonMenu nama="pemenang" />Pemenang</Link>
+          {kembaliKePemenang && (
+            <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+              <Link href="/pemenang/cerita" className={`block rounded-lg px-3 py-2 text-sm transition-colors ${kembaliKePemenang === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`} aria-current={kembaliKePemenang === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+              <Link href="/pemenang/komik" className={`block rounded-lg px-3 py-2 text-sm transition-colors ${kembaliKePemenang === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`} aria-current={kembaliKePemenang === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+            </div>
+          )}
         </nav>
         <div className="mt-auto">
           <p className="text-sm font-semibold">Juri</p>
@@ -93,11 +156,11 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
 
       <main className="mx-auto w-full max-w-4xl space-y-5 p-4 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/karya" className="inline-flex items-center gap-2 text-sm font-semibold text-[#245c4e] hover:underline">
+          <Link href={halamanKategori} className="inline-flex items-center gap-2 text-sm font-semibold text-[#245c4e] hover:underline">
             <span aria-hidden="true">←</span>
-            Kembali ke Daftar Karya
+            Kembali ke {namaKategori}
           </Link>
-          <Link href="/kandidat" className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfdc] bg-white px-3 py-2 text-sm font-semibold text-[#245c4e] hover:bg-[#f5f7f6]">
+          <Link href={halamanKandidat} className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfdc] bg-white px-3 py-2 text-sm font-semibold text-[#245c4e] hover:bg-[#f5f7f6]">
             <IkonMenu nama="kandidat" />
             Kandidat
           </Link>

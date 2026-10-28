@@ -1,9 +1,15 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import IkonMenu from "@/components/IkonMenu";
 import { PESERTA, type Lomba } from "@/lib/data";
+import {
+  getServerSnapshotStatusKarya,
+  getSnapshotStatusKarya,
+  subscribeStatusKarya,
+  type StatusKarya,
+} from "@/lib/status-karya";
 
 // Halaman Kandidat Pemenang (satu file). Taruh di app/kandidat/page.tsx.
 // Nilai juri di bawah masih data contoh (sama dengan halaman Pemenang); nanti diganti dari database.
@@ -39,10 +45,14 @@ const NILAI_JURI: Record<number, Nilai> = {
 const rataRata = (n: Nilai) =>
   Math.round(((n.tema + n.orisinalitas + n.kualitas) / 3) * 10) / 10;
 
-function hitungKandidat(lomba: Lomba): Kandidat[] {
+function hitungKandidat(
+  lomba: Lomba,
+  statusTersimpan: Record<string, StatusKarya>,
+): Kandidat[] {
   const layak = PESERTA.flatMap((p) => {
     const nilai = NILAI_JURI[p.id];
-    if (!nilai || p.judul === null || p.lomba !== lomba || p.status === "Ditolak") return [];
+    const status = statusTersimpan[`peserta-${p.id}`] ?? p.status;
+    if (!nilai || p.judul === null || p.lomba !== lomba || status === "Ditolak") return [];
     return [
       {
         id: p.id,
@@ -62,11 +72,6 @@ function hitungKandidat(lomba: Lomba): Kandidat[] {
     .slice(0, KUOTA_KANDIDAT);
 }
 
-const DATA_KANDIDAT: Record<Lomba, Kandidat[]> = {
-  Cerita: hitungKandidat("Cerita"),
-  Komik: hitungKandidat("Komik"),
-};
-
 type Aktif = "dashboard" | "peserta" | "karya" | "kandidat" | "pemenang";
 
 const MENU: { kunci: Aktif; href: string; label: string; labelPendek: string }[] = [
@@ -75,16 +80,18 @@ const MENU: { kunci: Aktif; href: string; label: string; labelPendek: string }[]
   { kunci: "karya", href: "/karya", label: "Daftar Karya Peserta", labelPendek: "Daftar Karya" },
 ];
 
-const MENU_PEMENANG: { kunci: Aktif; href: string; label: string }[] = [
-  { kunci: "kandidat", href: "/kandidat", label: "Kandidat Pemenang" },
-  { kunci: "pemenang", href: "/pemenang", label: "Pemenang" },
-];
-
 const aktifKelas = "flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]";
 const biasaKelas =
   "flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]";
 
-function SidebarPanitia({ aktif }: { aktif: Aktif }) {
+function SidebarPanitia({ aktif, kategori }: { aktif: Aktif; kategori?: Lomba }) {
+  const kelasSubmenu = (pilihan: Lomba) =>
+    `block rounded-lg px-3 py-2 text-sm transition-colors ${
+      kategori === pilihan
+        ? "bg-[#eef3f0] font-semibold text-[#245c4e]"
+        : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"
+    }`;
+
   return (
     <aside className="sticky top-0 hidden h-screen flex-col border-r border-[#e3e8e5] bg-white p-5 lg:flex">
       <div className="flex items-center gap-3">
@@ -100,12 +107,28 @@ function SidebarPanitia({ aktif }: { aktif: Aktif }) {
           </Link>
         ))}
         <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-        {MENU_PEMENANG.map((m) => (
-          <Link key={m.kunci} href={m.href} className={aktif === m.kunci ? aktifKelas : biasaKelas} aria-current={aktif === m.kunci ? "page" : undefined}>
-            <IkonMenu nama={m.kunci} />
-            {m.label}
-          </Link>
-        ))}
+        <Link
+          href="/kandidat"
+          className={aktif === "kandidat" ? aktifKelas : biasaKelas}
+          aria-current={aktif === "kandidat" ? "page" : undefined}
+        >
+          <IkonMenu nama="kandidat" />
+          Kandidat Pemenang
+        </Link>
+        {aktif === "kandidat" && (
+          <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+            <Link href="/kandidat/cerita" className={kelasSubmenu("Cerita")} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+            <Link href="/kandidat/komik" className={kelasSubmenu("Komik")} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+          </div>
+        )}
+        <Link
+          href="/pemenang"
+          className={aktif === "pemenang" ? aktifKelas : biasaKelas}
+          aria-current={aktif === "pemenang" ? "page" : undefined}
+        >
+          <IkonMenu nama="pemenang" />
+          Pemenang
+        </Link>
       </nav>
       <div className="mt-auto">
         <p className="text-sm font-semibold">Panitia (contoh)</p>
@@ -117,7 +140,7 @@ function SidebarPanitia({ aktif }: { aktif: Aktif }) {
 }
 
 // Bar atas + menu untuk layar kecil
-function BarAtasPanitia({ aktif }: { aktif: Aktif }) {
+function BarAtasPanitia({ aktif, kategori }: { aktif: Aktif; kategori?: Lomba }) {
   const semuaMenu = [
     ...MENU.map((m) => ({ kunci: m.kunci, href: m.href, label: m.labelPendek })),
     { kunci: "kandidat" as Aktif, href: "/kandidat", label: "Kandidat" },
@@ -145,6 +168,12 @@ function BarAtasPanitia({ aktif }: { aktif: Aktif }) {
           </Link>
         ))}
       </nav>
+      {aktif === "kandidat" && (
+        <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 py-2 text-sm lg:hidden" aria-label="Kategori kandidat">
+          <Link href="/kandidat/cerita" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+          <Link href="/kandidat/komik" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+        </nav>
+      )}
     </>
   );
 }
@@ -230,7 +259,7 @@ function BarisKandidat({ p }: { p: Kandidat }) {
       </div>
 
       <Link
-        href={`/juri/peringkat-${p.id}`}
+        href={`/juri/peringkat-${p.id}?kategoriKandidat=${p.lomba}`}
         className="inline-flex h-9 items-center justify-center rounded-lg bg-[#245c4e] px-4 text-xs font-bold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
       >
         Tinjau karya
@@ -239,16 +268,32 @@ function BarisKandidat({ p }: { p: Kandidat }) {
   );
 }
 
-function DaftarKandidat() {
-  const [lomba, setLomba] = useState<Lomba>("Cerita");
+function DaftarKandidat({ kategori }: { kategori?: Lomba }) {
   const [q, setQ] = useState("");
+  const snapshotStatus = useSyncExternalStore(
+    subscribeStatusKarya,
+    getSnapshotStatusKarya,
+    getServerSnapshotStatusKarya,
+  );
 
-  const semua = DATA_KANDIDAT[lomba];
+  const semua = useMemo(
+    () => (kategori ? hitungKandidat(kategori, snapshotStatus.status) : []),
+    [kategori, snapshotStatus.status],
+  );
   const kata = q.trim().toLowerCase();
   const tampil = semua.filter((p) => `${p.nama} ${p.asal} ${p.judul}`.toLowerCase().includes(kata));
 
   return (
     <div className="space-y-5">
+      {kategori && (
+        <Link
+          href="/kandidat"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#d9dfdc] bg-white px-4 text-sm font-semibold text-[#245c4e] shadow-sm transition-colors hover:bg-[#f5f7f6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] lg:hidden"
+        >
+          <span aria-hidden="true">←</span>
+          Kembali ke Kandidat Pemenang
+        </Link>
+      )}
       {/* Banner */}
       <section className="flex flex-col items-center gap-3 rounded-2xl border border-[#e3e8e5] bg-white px-4 py-6 text-center shadow-sm sm:py-8">
         <IlustrasiPiala />
@@ -260,21 +305,37 @@ function DaftarKandidat() {
         </div>
       </section>
 
-      {/* Daftar */}
+      {!kategori ? (
+        <section aria-label="Pilih kategori lomba" className="grid gap-4 md:grid-cols-2">
+          {LOMBA.map((lomba) => (
+            <Link
+              key={lomba.nilai}
+              href={lomba.nilai === "Cerita" ? "/kandidat/cerita" : "/kandidat/komik"}
+              className="group overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+            >
+              <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-400 to-amber-400" />
+              <div className="flex items-center justify-between gap-4 p-5">
+                <div>
+                  <h2 className="text-lg font-semibold group-hover:text-[#245c4e]">
+                    {lomba.nilai === "Cerita" ? "Cerita HAM" : "Komik Bergambar"}
+                  </h2>
+                  <p className="mt-1 text-sm text-[#718079]">Lihat dan tinjau kandidat pemenang</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-[#eef3f0] px-3 py-1 text-sm font-semibold text-[#245c4e]">
+                    {hitungKandidat(lomba.nilai, snapshotStatus.status).length} kandidat
+                </span>
+              </div>
+            </Link>
+          ))}
+        </section>
+      ) : (
       <section className="rounded-2xl border border-[#e3e8e5] bg-white p-4 shadow-sm sm:p-6">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div role="group" aria-label="Pilih lomba" className="inline-flex rounded-lg border border-[#d9dfdc] bg-white p-1 text-sm">
-            {LOMBA.map((l) => (
-              <button
-                key={l.nilai}
-                type="button"
-                aria-pressed={lomba === l.nilai}
-                onClick={() => setLomba(l.nilai)}
-                className={`rounded-md px-4 py-1.5 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] ${lomba === l.nilai ? "bg-[#245c4e] text-white" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`}
-              >
-                {l.label}
-              </button>
-            ))}
+          <div>
+            <h2 className="font-semibold">
+              Kandidat {kategori === "Cerita" ? "Cerita HAM" : "Komik Bergambar"}
+            </h2>
+            <p className="mt-1 text-sm text-[#718079]">Kandidat diurutkan dari nilai tertinggi.</p>
           </div>
           <input
             className={`${input} w-full sm:w-64`}
@@ -288,10 +349,15 @@ function DaftarKandidat() {
         <p className="mb-3 text-xs text-[#718079]">
           {semua.length} kandidat, diurutkan dari nilai tertinggi
         </p>
+        {snapshotStatus.error && (
+          <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+            Status karya tidak dapat dimuat: {snapshotStatus.error}
+          </p>
+        )}
 
         {tampil.length === 0 ? (
           <p className="rounded-xl border border-dashed border-[#d9dfdc] py-10 text-center text-sm text-[#718079]">
-            {semua.length === 0 ? "Belum ada karya yang dinilai di lomba ini." : "Tidak ada kandidat yang cocok dengan pencarian."}
+            {semua.length === 0 ? "Belum ada karya yang dinilai di kategori ini." : "Tidak ada kandidat yang cocok dengan pencarian."}
           </p>
         ) : (
           <ol className="space-y-2">
@@ -301,18 +367,19 @@ function DaftarKandidat() {
           </ol>
         )}
       </section>
+      )}
     </div>
   );
 }
 
-export default function KandidatPage() {
+export default function KandidatPage({ kategori }: { kategori?: Lomba }) {
   return (
     <div className="min-h-screen bg-[#f5f7f6] text-[#183b35] lg:grid lg:grid-cols-[240px_1fr]">
-      <SidebarPanitia aktif="kandidat" />
+      <SidebarPanitia aktif="kandidat" kategori={kategori} />
       <div className="min-w-0">
-        <BarAtasPanitia aktif="kandidat" />
+        <BarAtasPanitia aktif="kandidat" kategori={kategori} />
         <main className="mx-auto max-w-6xl p-4 sm:p-7">
-          <DaftarKandidat />
+          <DaftarKandidat kategori={kategori} />
         </main>
       </div>
     </div>

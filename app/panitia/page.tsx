@@ -1,28 +1,48 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
 import StatCard from "@/components/StatCard";
 import ChartPendaftaran from "@/components/ChartPendaftaran";
 import DonutStatus from "@/components/DonutStatus";
 import TabelPeserta from "@/components/TabelPeserta";
 import IkonMenu from "@/components/IkonMenu";
+import { DATA_CONTOH as KARYA_CONTOH, type KaryaPeserta } from "@/components/DaftarKaryaPeserta";
 import { PESERTA, type Peserta } from "@/lib/data";
+import {
+  getServerSnapshotStatusKarya,
+  getSnapshotStatusKarya,
+  subscribeStatusKarya,
+} from "@/lib/status-karya";
 
 // Hitung jumlah menurut filter: semua, hanya Cerita, hanya Komik
-const hitung = (f: (p: Peserta) => boolean) => ({
-  semua: PESERTA.filter(f).length,
-  cerita: PESERTA.filter((p) => p.lomba === "Cerita" && f(p)).length,
-  komik: PESERTA.filter((p) => p.lomba === "Komik" && f(p)).length,
-});
-
 const panel = "overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm";
 
 export default function PanitiaPage() {
+  const snapshotStatus = useSyncExternalStore(
+    subscribeStatusKarya,
+    getSnapshotStatusKarya,
+    getServerSnapshotStatusKarya,
+  );
+  const statusKarya = (karya: KaryaPeserta) =>
+    snapshotStatus.status[karya.id] ?? karya.status;
+  const hitung = (f: (p: Peserta) => boolean) => ({
+    semua: PESERTA.filter(f).length,
+    cerita: PESERTA.filter((p) => p.lomba === "Cerita" && f(p)).length,
+    komik: PESERTA.filter((p) => p.lomba === "Komik" && f(p)).length,
+  });
+  const hitungKarya = (f: (k: KaryaPeserta) => boolean) => ({
+    semua: KARYA_CONTOH.filter(f).length,
+    cerita: KARYA_CONTOH.filter((k) => k.lomba === "Cerita" && f(k)).length,
+    komik: KARYA_CONTOH.filter((k) => k.lomba === "Komik" && f(k)).length,
+  });
   const totalDaftar = hitung(() => true);
-  const totalKarya = hitung((p) => p.judul !== null);
-  const menunggu = hitung((p) => p.judul !== null && p.status === "Menunggu");
-  const ditinjau = hitung((p) => p.judul !== null && p.status === "Ditinjau");
-  const diverifikasi = hitung((p) => p.judul !== null && p.status === "Diverifikasi");
-  const ditolak = hitung((p) => p.judul !== null && p.status === "Ditolak");
+  const totalKarya = hitungKarya(() => true);
+  const menunggu = hitungKarya((k) => statusKarya(k) === "Menunggu");
+  const ditinjau = hitungKarya((k) => statusKarya(k) === "Ditinjau");
+  const diverifikasi = hitungKarya((k) => statusKarya(k) === "Diverifikasi");
+  const ditolak = hitungKarya((k) => statusKarya(k) === "Ditolak");
 
   return (
     <div className="min-h-screen bg-[#f5f7f6] text-[#183b35] lg:grid lg:grid-cols-[240px_1fr]">
@@ -70,6 +90,11 @@ export default function PanitiaPage() {
             <h1 className="text-2xl font-semibold">Dashboard</h1>
             <p className="mt-1 text-sm text-[#718079]">Pantau pendaftaran dan karya yang masuk. Data di halaman ini masih contoh.</p>
           </div>
+          {snapshotStatus.error && (
+            <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+              Status karya tidak dapat dimuat: {snapshotStatus.error}
+            </p>
+          )}
 
           {/* Ringkasan pendaftaran dan status karya */}
           <section aria-label="Ringkasan" className="grid grid-cols-2 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">

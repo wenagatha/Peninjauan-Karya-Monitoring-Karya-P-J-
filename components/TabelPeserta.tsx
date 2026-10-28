@@ -1,12 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { BADGE, tanggal, type Peserta } from "@/lib/data";
+import {
+  getServerSnapshotStatusKarya,
+  getSnapshotStatusKarya,
+  subscribeStatusKarya,
+} from "@/lib/status-karya";
 
 const input = "h-10 rounded-lg border border-[#d9dfdc] bg-white px-3 text-sm outline-none focus:border-[#2c7767]";
 
 export default function TabelPeserta({ peserta }: { peserta: Peserta[] }) {
   const [q, setQ] = useState("");
   const [lomba, setLomba] = useState("");
+  const snapshotStatus = useSyncExternalStore(
+    subscribeStatusKarya,
+    getSnapshotStatusKarya,
+    getServerSnapshotStatusKarya,
+  );
 
   const tampil = peserta.filter(
     (p) =>
@@ -36,8 +46,10 @@ export default function TabelPeserta({ peserta }: { peserta: Peserta[] }) {
             </tr>
           </thead>
           <tbody>
-            {tampil.map((p) => (
-              <tr key={p.id} className="border-b border-[#f0f3f1] last:border-0">
+            {tampil.map((p) => {
+              const status = snapshotStatus.status[`peserta-${p.id}`] ?? p.status;
+              return (
+                <tr key={p.id} className="border-b border-[#f0f3f1] last:border-0">
                 <td className="py-3 pr-3">
                   <p className="font-semibold">{p.nama}</p>
                   <p className="text-xs text-[#718079]">{p.asal}</p>
@@ -45,16 +57,22 @@ export default function TabelPeserta({ peserta }: { peserta: Peserta[] }) {
                 <td className="py-3 pr-3">{p.lomba}</td>
                 <td className="whitespace-nowrap py-3 pr-3 text-[#40554c]">{tanggal(p.daftar)}</td>
                 <td className="py-3">
-                  <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${BADGE[p.status]}`}>{p.status}</span>
+                  <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${BADGE[status]}`}>{status}</span>
                 </td>
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
             {tampil.length === 0 && (
               <tr><td colSpan={4} className="py-8 text-center text-[#718079]">Tidak ada peserta yang cocok.</td></tr>
             )}
           </tbody>
         </table>
       </div>
+      {snapshotStatus.error && (
+        <p className="mt-3 text-sm text-rose-700" role="alert">
+          Status karya tidak dapat dimuat: {snapshotStatus.error}
+        </p>
+      )}
     </div>
   );
 }

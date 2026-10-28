@@ -1,9 +1,15 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import IkonMenu from "@/components/IkonMenu";
 import { PESERTA, type Lomba } from "@/lib/data";
+import {
+  getServerSnapshotStatusKarya,
+  getSnapshotStatusKarya,
+  subscribeStatusKarya,
+  type StatusKarya,
+} from "@/lib/status-karya";
 
 // Halaman Pemenang (satu file). Taruh di app/pemenang/page.tsx.
 // Nilai juri di bawah masih data contoh; nanti diganti dari database.
@@ -40,10 +46,14 @@ const rataRata = (n: Nilai) =>
 
 // Karya yang masuk peringkat: sudah punya nilai juri dan statusnya bukan "Ditolak".
 // Kalau hanya karya "Diverifikasi" yang boleh jadi pemenang, ubah syarat di bawah.
-function hitungPeringkat(lomba: Lomba): Peringkat[] {
+function hitungPeringkat(
+  lomba: Lomba,
+  statusTersimpan: Record<string, StatusKarya>,
+): Peringkat[] {
   const layak = PESERTA.flatMap((p) => {
     const nilai = NILAI_JURI[p.id];
-    if (!nilai || p.judul === null || p.lomba !== lomba || p.status === "Ditolak") return [];
+    const status = statusTersimpan[`peserta-${p.id}`] ?? p.status;
+    if (!nilai || p.judul === null || p.lomba !== lomba || status === "Ditolak") return [];
     return [
       {
         id: p.id,
@@ -76,7 +86,14 @@ const aktifKelas = "flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 fo
 const biasaKelas =
   "flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]";
 
-function SidebarPanitia({ aktif }: { aktif: Aktif }) {
+function SidebarPanitia({ aktif, kategori }: { aktif: Aktif; kategori?: Lomba }) {
+  const kelasSubmenu = (pilihan: Lomba) =>
+    `block rounded-lg px-3 py-2 text-sm transition-colors ${
+      kategori === pilihan
+        ? "bg-[#eef3f0] font-semibold text-[#245c4e]"
+        : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"
+    }`;
+
   return (
     <aside className="sticky top-0 hidden h-screen flex-col border-r border-[#e3e8e5] bg-white p-5 lg:flex">
       <div className="flex items-center gap-3">
@@ -97,6 +114,12 @@ function SidebarPanitia({ aktif }: { aktif: Aktif }) {
           <IkonMenu nama="pemenang" />
           Pemenang
         </Link>
+        {aktif === "pemenang" && (
+          <div className="ml-5 space-y-1 border-l-2 border-[#d9e3dd] pl-3">
+            <Link href="/pemenang/cerita" className={kelasSubmenu("Cerita")} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+            <Link href="/pemenang/komik" className={kelasSubmenu("Komik")} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+          </div>
+        )}
       </nav>
       <div className="mt-auto">
         <p className="text-sm font-semibold">Panitia (contoh)</p>
@@ -108,7 +131,7 @@ function SidebarPanitia({ aktif }: { aktif: Aktif }) {
 }
 
 // Bar atas + menu untuk layar kecil
-function BarAtasPanitia({ aktif }: { aktif: Aktif }) {
+function BarAtasPanitia({ aktif, kategori }: { aktif: Aktif; kategori?: Lomba }) {
   return (
     <>
       <header className="flex items-center justify-between border-b border-[#e3e8e5] bg-white px-4 py-3 lg:hidden">
@@ -131,6 +154,12 @@ function BarAtasPanitia({ aktif }: { aktif: Aktif }) {
           </Link>
         ))}
       </nav>
+      {aktif === "pemenang" && (
+        <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 py-2 text-sm lg:hidden" aria-label="Kategori pemenang">
+          <Link href="/pemenang/cerita" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Cerita" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Cerita" ? "page" : undefined}>Cerita HAM</Link>
+          <Link href="/pemenang/komik" className={`shrink-0 rounded-lg px-3 py-2 ${kategori === "Komik" ? "bg-[#eef3f0] font-semibold text-[#245c4e]" : "text-[#52645c] hover:bg-[#f5f7f6]"}`} aria-current={kategori === "Komik" ? "page" : undefined}>Komik Bergambar</Link>
+        </nav>
+      )}
     </>
   );
 }
@@ -160,11 +189,18 @@ const KELAS_PODIUM: Record<number, string> = {
   3: "order-3 border-[#b8703a] border-t-4 border-t-[#b8703a] bg-white",
 };
 
-function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
-  const [lomba, setLomba] = useState<Lomba>("Cerita");
+function PemenangRanking({ kategori }: { kategori?: Lomba }) {
   const [q, setQ] = useState("");
+  const snapshotStatus = useSyncExternalStore(
+    subscribeStatusKarya,
+    getSnapshotStatusKarya,
+    getServerSnapshotStatusKarya,
+  );
 
-  const semua = data[lomba];
+  const semua = useMemo(
+    () => (kategori ? hitungPeringkat(kategori, snapshotStatus.status) : []),
+    [kategori, snapshotStatus.status],
+  );
   const tiga = semua.slice(0, 3);
   const sisa = semua.slice(3, 10);
 
@@ -172,34 +208,53 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
   const tampil = sisa
     .filter((p) => `${p.nama} ${p.asal} ${p.judul}`.toLowerCase().includes(kata));
 
+  if (!kategori) {
+    return (
+      <section aria-label="Pilih kategori lomba" className="grid gap-4 md:grid-cols-2">
+        {LOMBA.map((lomba) => (
+          <Link
+            key={lomba.nilai}
+            href={lomba.nilai === "Cerita" ? "/pemenang/cerita" : "/pemenang/komik"}
+            className="group overflow-hidden rounded-xl border-2 border-[#52645c] bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
+          >
+            <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-400 to-amber-400" />
+            <div className="flex items-center justify-between gap-4 p-5">
+              <div>
+                <h2 className="text-lg font-semibold group-hover:text-[#245c4e]">
+                  {lomba.nilai === "Cerita" ? "Cerita HAM" : "Komik Bergambar"}
+                </h2>
+                <p className="mt-1 text-sm text-[#718079]">Lihat papan peringkat pemenang lomba</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#eef3f0] px-3 py-1 text-sm font-semibold text-[#245c4e]">
+                {hitungPeringkat(lomba.nilai, snapshotStatus.status).length} peserta
+              </span>
+            </div>
+          </Link>
+        ))}
+      </section>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border-2 border-[#52645c] bg-[#f5f7f6] p-4 text-[#183b35] shadow-sm sm:p-7">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#718079]">Papan peringkat</p>
-          <h2 className="mt-1 text-xl font-bold sm:text-2xl">{LOMBA.find((item) => item.nilai === lomba)?.label}</h2>
-        </div>
-        <div role="group" aria-label="Pilih lomba" className="inline-flex rounded-lg border border-[#d9dfdc] bg-white p-1 text-sm">
-          {LOMBA.map((l) => (
-            <button
-              key={l.nilai}
-              type="button"
-              aria-pressed={lomba === l.nilai}
-              onClick={() => setLomba(l.nilai)}
-              className={`rounded-md px-4 py-1.5 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] ${lomba === l.nilai ? "bg-[#245c4e] text-white" : "text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"}`}
-            >
-              {l.label}
-            </button>
-          ))}
+          <h2 className="mt-1 text-xl font-bold sm:text-2xl">{kategori === "Cerita" ? "Cerita HAM" : "Komik Bergambar"}</h2>
         </div>
       </div>
 
       <section aria-labelledby="judul-tiga">
+        {snapshotStatus.error && (
+          <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+            Status karya tidak dapat dimuat: {snapshotStatus.error}
+          </p>
+        )}
         <h2 id="judul-tiga" className="mb-5 text-center text-lg font-bold uppercase tracking-[0.16em] text-[#245c4e] sm:text-xl">
-          Pemenang {lomba === "Cerita" ? "Lomba Cerita" : "Lomba Komik"}
+          Pemenang {kategori === "Cerita" ? "Cerita HAM" : "Komik Bergambar"}
         </h2>
         {tiga.length === 0 ? (
-          <p className="rounded-xl border border-[#d9dfdc] bg-white p-8 text-center text-sm text-[#718079]">Belum ada karya yang dinilai di lomba ini.</p>
+          <p className="rounded-xl border border-[#d9dfdc] bg-white p-8 text-center text-sm text-[#718079]">Belum ada karya yang dinilai di kategori ini.</p>
         ) : (
           <ol className="grid items-stretch gap-4 sm:grid-cols-3 sm:gap-3">
             {tiga.map((p) => {
@@ -233,7 +288,7 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
                     {/* Bawah: hanya tombol */}
                     <div className="relative mt-auto pt-5">
                       <Link
-                        href={`/juri/peringkat-${p.id}`}
+                        href={`/juri/peringkat-${p.id}?kategoriPemenang=${kategori}`}
                         className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#245c4e] px-3 text-xs font-bold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
                       >
                         Tinjau karya
@@ -281,7 +336,7 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
                 </div>
                 <div className="flex justify-end border-t border-[#e3e8e5] pt-2 sm:border-0 sm:pt-0">
                   <Link
-                    href={`/juri/peringkat-${p.id}`}
+                    href={`/juri/peringkat-${p.id}?kategoriPemenang=${kategori}`}
                     className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-[#245c4e] px-3 text-xs font-bold text-white transition-colors hover:bg-[#1b493e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e]"
                   >
                     Tinjau karya
@@ -301,23 +356,26 @@ function PemenangRanking({ data }: { data: Record<Lomba, Peringkat[]> }) {
   );
 }
 
-const DATA_PERINGKAT: Record<Lomba, Peringkat[]> = {
-  Cerita: hitungPeringkat("Cerita"),
-  Komik: hitungPeringkat("Komik"),
-};
+export default function PemenangPage({ kategori }: { kategori?: Lomba }) {
+  const namaKategori = kategori === "Cerita" ? "Cerita HAM" : "Komik Bergambar";
 
-export default function PemenangPage() {
   return (
     <div className="min-h-screen bg-[#f5f7f6] text-[#183b35] lg:grid lg:grid-cols-[240px_1fr]">
-      <SidebarPanitia aktif="pemenang" />
+      <SidebarPanitia aktif="pemenang" kategori={kategori} />
       <div className="min-w-0">
-        <BarAtasPanitia aktif="pemenang" />
+        <BarAtasPanitia aktif="pemenang" kategori={kategori} />
         <main className="mx-auto max-w-6xl space-y-5 p-4 sm:p-7">
+          {kategori && (
+            <Link href="/pemenang" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[#d9dfdc] bg-white px-4 text-sm font-semibold text-[#245c4e] shadow-sm transition-colors hover:bg-[#f5f7f6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245c4e] lg:hidden">
+              <span aria-hidden="true">←</span>
+              Kembali ke Pemenang
+            </Link>
+          )}
           <div>
-            <h1 className="text-2xl font-semibold">Pemenang</h1>
-            <p className="mt-1 text-sm text-[#718079]">Papan peringkat karya peserta berdasarkan nilai juri.</p>
+            <h1 className="text-2xl font-semibold">{kategori ? `Pemenang ${namaKategori}` : "Pemenang"}</h1>
+            <p className="mt-1 text-sm text-[#718079]">{kategori ? `Papan peringkat karya peserta lomba ${namaKategori} berdasarkan nilai juri.` : "Pilih kategori lomba untuk melihat papan peringkat pemenang."}</p>
           </div>
-          <PemenangRanking data={DATA_PERINGKAT} />
+          <PemenangRanking kategori={kategori} />
         </main>
       </div>
     </div>
