@@ -30,7 +30,7 @@ export default function PanitiaPage() {
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-[#e3e8e5] bg-white p-5 lg:flex">
         <div className="flex items-center gap-3">
           <Image src="/assets/logo-kemenham.png" alt="Logo Kementerian Hukum dan HAM RI" width={36} height={36} className="size-9 object-contain" />
-          <span className="text-sm font-semibold leading-tight">Kementrian HAM</span>
+          <span className="text-sm font-semibold leading-tight">Kementerian HAM</span>
         </div>
         <nav className="mt-8 flex flex-col gap-2 text-sm" aria-label="Menu utama">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Monitoring & Meninjau</p>
