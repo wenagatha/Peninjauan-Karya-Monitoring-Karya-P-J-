@@ -38,7 +38,7 @@ export default function PanitiaPage() {
           <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
           <Link href="/karya" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
           <p className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-          <span className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c]"><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+          <Link href="/kandidat" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
           <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] transition-colors hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
         <div className="mt-auto">
@@ -61,6 +61,7 @@ export default function PanitiaPage() {
           <Link href="/panitia" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="dashboard" />Dashboard</Link>
           <Link href="/peserta" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
           <Link href="/karya" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="karya" />Daftar Karya</Link>
+          <Link href="/kandidat" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="kandidat" />Kandidat</Link>
           <Link href="/pemenang" className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6] hover:text-[#245c4e]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
 

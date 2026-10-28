@@ -82,7 +82,7 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
           <Link href="/peserta" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="peserta" />Daftar Peserta</Link>
           <Link href="/karya" className="flex items-center gap-3 rounded-lg bg-[#eef3f0] px-3 py-2 font-semibold text-[#245c4e]" aria-current="page"><IkonMenu nama="karya" />Daftar Karya Peserta</Link>
           <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-          <span className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c]"><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+          <Link href="/kandidat" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
           <Link href="/pemenang" className="flex items-center gap-3 rounded-lg px-3 py-2 text-[#52645c] hover:bg-[#f5f7f6]"><IkonMenu nama="pemenang" />Pemenang</Link>
         </nav>
         <div className="mt-auto">
@@ -92,10 +92,16 @@ export default function TinjauanKarya({ karya }: { karya: KaryaPeserta }) {
       </aside>
 
       <main className="mx-auto w-full max-w-4xl space-y-5 p-4 sm:p-7">
-        <Link href="/karya" className="inline-flex items-center gap-2 text-sm font-semibold text-[#245c4e] hover:underline">
-          <span aria-hidden="true">←</span>
-          Kembali ke Daftar Karya
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href="/karya" className="inline-flex items-center gap-2 text-sm font-semibold text-[#245c4e] hover:underline">
+            <span aria-hidden="true">←</span>
+            Kembali ke Daftar Karya
+          </Link>
+          <Link href="/kandidat" className="inline-flex items-center gap-2 rounded-lg border border-[#d9dfdc] bg-white px-3 py-2 text-sm font-semibold text-[#245c4e] hover:bg-[#f5f7f6]">
+            <IkonMenu nama="kandidat" />
+            Kandidat
+          </Link>
+        </div>
 
         <header>
           <p className="text-sm font-medium text-[#718079]">Tinjauan Juri</p>

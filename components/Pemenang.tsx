@@ -92,7 +92,7 @@ function SidebarPanitia({ aktif }: { aktif: Aktif }) {
           </Link>
         ))}
         <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#929d98]">Pemenang</p>
-        <span className={biasaKelas}><IkonMenu nama="kandidat" />Kandidat Pemenang</span>
+        <Link href="/kandidat" className={biasaKelas}><IkonMenu nama="kandidat" />Kandidat Pemenang</Link>
         <Link href="/pemenang" className={aktif === "pemenang" ? aktifKelas : biasaKelas} aria-current={aktif === "pemenang" ? "page" : undefined}>
           <IkonMenu nama="pemenang" />
           Pemenang
@@ -119,7 +119,7 @@ function BarAtasPanitia({ aktif }: { aktif: Aktif }) {
         <Link href="/login" className="text-sm font-semibold text-[#245c4e]">Keluar</Link>
       </header>
       <nav className="flex gap-2 overflow-x-auto border-b border-[#e3e8e5] bg-white px-4 pb-3 text-sm lg:hidden" aria-label="Menu utama">
-        {[...MENU.map((m) => ({ kunci: m.kunci, href: m.href, label: m.labelPendek })), { kunci: "pemenang" as Aktif, href: "/pemenang", label: "Pemenang" }].map((m) => (
+        {[...MENU.map((m) => ({ kunci: m.kunci, href: m.href, label: m.labelPendek })), { kunci: "kandidat" as Aktif, href: "/kandidat", label: "Kandidat" }, { kunci: "pemenang" as Aktif, href: "/pemenang", label: "Pemenang" }].map((m) => (
           <Link
             key={m.kunci}
             href={m.href}
